@@ -555,6 +555,113 @@ in {
       (cd ${config.env.QUASAR_ROOT} && exec "$@")
     '';
 
+    get-latest-git-tag.exec =
+      "git describe --tags --abbrev=0 2>/dev/null || echo ";
+
+    prepare-release = {
+      exec = ''
+        set -euo pipefail
+
+        usage() {
+          echo "Usage: $0 --version <version> --out-dir <dir> [--last-tag <tag>] --platform <name>:<sig-file>:<filename> ..." >&2
+          exit 1
+        }
+
+        VERSION=""
+        OUT_DIR=""
+        LAST_TAG=""
+        PLATFORMS=()
+
+        while [ $# -gt 0 ]; do
+          case "$1" in
+            --version)   VERSION="$2"; shift 2 ;;
+            --out-dir)   OUT_DIR="$2"; shift 2 ;;
+            --last-tag)  LAST_TAG="$2"; shift 2 ;;
+            --platform)  PLATFORMS+=("$2"); shift 2 ;;
+            --help|-h)   usage ;;
+            *) echo "Unknown option: $1" >&2; usage ;;
+          esac
+        done
+
+        if [ -z "$VERSION" ] || [ -z "$OUT_DIR" ] || [ ''${#PLATFORMS[@]} -eq 0 ]; then
+          echo "Missing required arguments" >&2
+          usage
+        fi
+
+        PUB_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+        if [ -z "$LAST_TAG" ]; then
+          LAST_TAG="$(get-latest-git-tag || true)"
+        fi
+
+        if [ -n "$LAST_TAG" ]; then
+          NOTES=$(git log --pretty=format:"%s" "$LAST_TAG"..$VERSION \
+            | grep -vE '^feat: release [0-9]+\.[0-9]+\.[0-9]+$' || true)
+        else
+          NOTES="Initial release"
+        fi
+
+        NOTES_JSON=$(printf '%s' "$NOTES" | jq -Rs .)
+
+        # Create a new git tag if it doesn't exist
+        if ! git rev-parse "$VERSION" >/dev/null 2>&1; then
+          git tag -a "$VERSION" -m "Release $VERSION"
+        fi
+
+        BASE_URL="https://github.com/euphemism/dirtywave-updater-releases-mirror/releases/download/''${VERSION}"
+
+        PLATFORMS_JSON="{}"
+        for entry in "''${PLATFORMS[@]}"; do
+          name="''${entry%%:*}"
+          rest="''${entry#*:}"
+          sig_spec="''${rest%%:*}"
+          filename="''${rest#*:}"
+
+          if [[ "$sig_spec" == base64=* ]]; then
+            # Already a base64 blob
+            signature="''${sig_spec#base64=}"
+          else
+            # Treat as a file path
+            if [ ! -f "$sig_spec" ]; then
+              echo "Signature file not found: $sig_spec" >&2
+
+              exit 1
+            fi
+            signature=$(base64 -w0 < "$sig_spec")
+          fi
+
+          url="$BASE_URL/$filename"
+
+          PLATFORMS_JSON=$(jq \
+            --arg name "$name" \
+            --arg sig "$signature" \
+            --arg url "$url" \
+            '. + {($name): {signature: $sig, url: $url}}' \
+            <<<"$PLATFORMS_JSON")
+        done
+
+        LATEST_JSON="$OUT_DIR/latest.json"
+
+        jq -n \
+          --arg version "$VERSION" \
+          --argjson notes "$NOTES_JSON" \
+          --arg pub_date "$PUB_DATE" \
+          --argjson platforms "$PLATFORMS_JSON" \
+          '{
+            version: $version,
+            notes: $notes,
+            pub_date: $pub_date,
+            platforms: $platforms
+          }' > "$LATEST_JSON"
+
+        echo "Generated latest.json release metadata for $VERSION" >&2
+
+        echo "$LATEST_JSON"
+      '';
+
+      packages = [ pkgs.jq pkgs.coreutils ];
+    };
+
     quasar-cli.exec = ''frontend bunx @quasar/cli "$@"'';
 
     set-and-sync-package-versions = {

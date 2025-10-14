@@ -1,0 +1,52 @@
+name: PR Checks
+
+on:
+  pull_request_target:
+    branches:
+      - release
+    types: [labeled, opened, reopened, synchronize, unlabeled]
+
+jobs:
+  require-version-bump-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify version-bump label
+        id: verify
+        run: |
+          labels=$(jq -r '.pull_request.labels[].name // empty' "$GITHUB_EVENT_PATH" | grep -E '^(patch|minor|major)$' || true)
+
+          echo "Detected bump labels: $labels"
+
+          count=$(echo "$labels" | grep -c . || true)
+
+          if [ "$count" -eq 1 ]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "reason=valid" >> "$GITHUB_OUTPUT"
+          elif [ "$count" -eq 0 ]; then
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "reason=❌ Missing required version-bump label (patch|minor|major)" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "reason=❌ Multiple version-bump labels applied; only one of (patch|minor|major) is allowed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post comment if invalid
+        if: steps.verify.outputs.valid == 'false'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: ${{ steps.verify.outputs.reason }}
+          comment-tag: bump-check
+          mode: upsert
+
+      - name: Delete comment if valid
+        if: steps.verify.outputs.valid == 'true'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: bump-check
+          mode: delete
+
+      - name: Fail if invalid
+        if: steps.verify.outputs.valid == 'false'
+        run: |
+          echo "${{ steps.verify.outputs.reason }}" >&2
+          exit 1
