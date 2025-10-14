@@ -1,8 +1,10 @@
 { config, inputs, lib, pkgs, ... }:
 
 let
-  pkgs-unstable =
-    import inputs.nixpkgs-unstable { system = pkgs.stdenv.system; };
+  pkgs-unstable = import inputs.nixpkgs-unstable {
+    overlays = [ inputs.rust-overlay.overlays.default ];
+    system = pkgs.stdenv.system;
+  };
 in {
   cachix.enable = false;
 
@@ -115,11 +117,7 @@ in {
     settings.rust.cargoManifestPath = "${config.env.TAURI_ROOT}/Cargo.toml";
   };
 
-  packages = [
-    pkgs.age
-    pkgs.cargo-tauri
-    pkgs.jq
-  ];
+  packages = [ pkgs.age pkgs.cargo-tauri pkgs.jq ];
 
   processes.tauri-dev.exec = "tauri-cli dev";
 

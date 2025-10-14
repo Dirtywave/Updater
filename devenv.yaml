@@ -1,14 +1,15 @@
 # yaml-language-server: $schema=https://devenv.sh/devenv.schema.json
 inputs:
-  fenix:
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
-    url: github:nix-community/fenix
+
   nixpkgs:
     url: github:cachix/devenv-nixpkgs/rolling
   nixpkgs-unstable:
     url: github:nixos/nixpkgs/nixpkgs-unstable
+  rust-overlay:
+    url: github:oxalica/rust-overlay
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
 # If you're using non-OSS software, you can set allowUnfree to true.
 # allowUnfree: true
 
