@@ -1,6 +1,10 @@
 { config, inputs, lib, pkgs, ... }:
 
 let
+  # Source of truth.
+  # Automatically propagates to src-tauri/Cargo.toml and src-quasar/package.json
+  application-version = "0.0.0";
+
   pkgs-unstable = import inputs.nixpkgs-unstable {
     overlays = [ inputs.rust-overlay.overlays.default ];
     system = pkgs.stdenv.system;
@@ -19,14 +23,22 @@ in {
   env = {
     AGE_ROOT_PUBLIC_KEY =
       "age1zwls895rxugu2kf6f4ys6pgl36e3k7dx4djt3dl9ckdmcgg3naaqs9qjae";
+
     APPLE_SIGNING_SECRETS_FILE =
       "${config.env.DEVENV_ROOT}/encrypted/apple-signing.sops.json";
+
     BIOME_BINARY = "${pkgs.biome}/bin/biome";
+
     CARGO_TARGET_DIR = "${config.env.TAURI_ROOT}/target";
+
     PINIA_STORE_PATH = "${config.env.DEVENV_STATE}/pinia";
+
     QUASAR_ROOT = "${config.env.DEVENV_ROOT}/src-quasar";
+
     ROOT_KEY_FILE = "${config.env.DEVENV_ROOT}/encrypted/root-key.sops.json";
+
     TAURI_ROOT = "${config.env.DEVENV_ROOT}/src-tauri";
+
     TAURI_UPDATER_KEY_FILE =
       "${config.env.DEVENV_ROOT}/encrypted/tauri-updater.sops.json";
   };
@@ -172,6 +184,47 @@ in {
     quasar-cli.exec = ''
       (cd ${config.env.QUASAR_ROOT} && bunx @quasar/cli "$@")
     '';
+
+    set-and-sync-package-versions = {
+      exec = ''
+        set -euo pipefail
+
+        if [ $# -ne 1 ]; then
+          echo "Usage: $0 {patch|minor|major}"
+          exit 1
+        fi
+
+        BUMP_TYPE="$1"
+
+        CURRENT=$(sed -nE 's|^[[:space:]]*application-version = "([^"]+)";.*|\1|p' devenv.nix)
+
+        if [ -z "$CURRENT" ]; then
+          echo "Could not determine current version from devenv.nix"
+          exit 1
+        fi
+
+        # Compute new version using semver-tool
+        NEW=$(semver bump "$BUMP_TYPE" "$CURRENT")
+
+        echo "Bumping version: $CURRENT → $NEW" >&2
+
+        # Update devenv.nix
+        sed -i -E "s|^([[:space:]]*application-version = \").*(\";)|\1''${NEW}\2|" devenv.nix
+
+        # Update Cargo.toml
+        backend sed -i -E "s|^version = \".*\"|version = \"''${NEW}\"|" "Cargo.toml"
+
+        # Update Cargo.lock with the application's new version
+        backend cargo update --quiet --workspace
+
+        # Update package.json
+        frontend sed -i -E "s|\"version\": *\"[^\"]*\"|\"version\": \"''${NEW}\"|" "package.json"
+
+        echo "''${NEW}"
+      '';
+
+      packages = [ pkgs.semver-tool ];
+    };
 
     # This is a wrapper around SOPS to cleanly work with an envelope encryption approach.
     #
