@@ -43,7 +43,12 @@ in {
       # https://devenv.sh/reference/options/#languagesrustchannel
       channel = "stable";
 
-      targets = [ "aarch64-apple-darwin" "wasm32-unknown-unknown" ];
+      targets = [
+        "aarch64-apple-darwin"
+        "x86_64-apple-darwin"
+        "x86_64-pc-windows-gnu"
+        "x86_64-unknown-linux-gnu"
+      ];
 
       components = [
         "rustc"
@@ -79,6 +84,8 @@ in {
         before = [ "biome" ];
         enable = true;
         fail_fast = true;
+        # TODO: Temporary mitigation to address commitizen force-pushing over a release and changing the hash. Should be able to remove in a few days (Currently 2025-10-05).
+        package = pkgs-unstable.commitizen;
       };
 
       eslint = {
@@ -105,13 +112,9 @@ in {
 
   packages = [
     pkgs.age
-    # Compiler infrastructure and toolchain library for WebAssembly, in C++; use a newer version of wasm-opt
-    pkgs.binaryen
     pkgs.cargo-tauri
-    pkgs.nodejs
-    pkgs.wasm-pack
-  ] ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk;
-    [ frameworks.Security ]); # TODO: Look into why this is needed
+    pkgs.jq
+  ];
 
   processes.tauri-dev.exec = "tauri-cli dev";
 
@@ -233,9 +236,7 @@ in {
         "[\"$KEY\"]" "\"$VALUE\""
     '';
 
-    tauri-cli.exec = ''
-      (cd ${config.env.TAURI_ROOT} && cargo-tauri "$@")
-    '';
+    tauri-cli.exec = ''backend cargo-tauri "$@"'';
   };
 
   tasks = {
@@ -248,8 +249,6 @@ in {
         [ "$(git config --local diff.sopsdiffer.textconv)" = "sops decrypt" ] && exit 0 || exit 1
       '';
     };
-
-    "dirtywave-updater:build:aarch64" = { exec = "\n"; };
   };
 
   # See full reference at https://devenv.sh/reference/options/
