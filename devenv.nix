@@ -17,11 +17,16 @@ in {
   env = {
     AGE_ROOT_PUBLIC_KEY =
       "age1zwls895rxugu2kf6f4ys6pgl36e3k7dx4djt3dl9ckdmcgg3naaqs9qjae";
+    APPLE_SIGNING_SECRETS_FILE =
+      "${config.env.DEVENV_ROOT}/encrypted/apple-signing.sops.json";
     BIOME_BINARY = "${pkgs.biome}/bin/biome";
     CARGO_TARGET_DIR = "${config.env.TAURI_ROOT}/target";
+    PINIA_STORE_PATH = "${config.env.DEVENV_STATE}/pinia";
     QUASAR_ROOT = "${config.env.DEVENV_ROOT}/src-quasar";
-    ROOT_KEY_FILE = "./encrypted/root-key.sops.json";
+    ROOT_KEY_FILE = "${config.env.DEVENV_ROOT}/encrypted/root-key.sops.json";
     TAURI_ROOT = "${config.env.DEVENV_ROOT}/src-tauri";
+    TAURI_UPDATER_KEY_FILE =
+      "${config.env.DEVENV_ROOT}/encrypted/tauri-updater.sops.json";
   };
 
   languages = {
