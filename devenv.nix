@@ -180,65 +180,57 @@ in {
     # This wrapper makes that very simple - it detects when the root key was used to encrypt
     # the file being operated upon, and then acquires/configures the root key for use before
     # actually invoking SOPS on the file.
-    sops.exec = let sops = "${pkgs-unstable.sops}/bin/sops";
-    in ''
-      # If no arguments are passed, show SOPS help.
-      if [ "$#" -eq 0 ]; then
-        exec ${sops} --help
-      fi
+    sops = {
+      exec = ''
+        set -euo pipefail
 
-      # Determine whether we're in exec-env mode or normal mode.
-      if [ "$1" = "exec-env" ]; then
-        if [ "$#" -lt 3 ]; then
-          exit 1
+        # Forward all args by default
+        ARGS=("$@")
+
+        # Try to detect a file argument among the args
+        TARGET=""
+
+        for arg in "''${ARGS[@]}"; do
+          if [ -f "$arg" ]; then
+            TARGET="$arg"
+
+            break
+          fi
+        done
+
+        if [ -n "$TARGET" ]; then
+          # Does it have age metadata?
+          if jq -e '.sops.age[].recipient' "$TARGET" >/dev/null 2>&1; then
+            # Does it include the root recipient?
+            if jq -r '.sops.age[].recipient' "$TARGET" | grep -qF "$AGE_ROOT_PUBLIC_KEY"; then
+              export SOPS_AGE_KEY="$(
+                sops decrypt --extract '["dirtywaveUpdaterRootPrivateKey"]' "$ROOT_KEY_FILE"
+              )"
+            fi
+          fi
         fi
 
-        MODE="exec-env"
+        exec sops "''${ARGS[@]}"
+      '';
 
-        TARGET="$2"
-        shift 2
-        COMMAND=("$@")
-      else
-        MODE="normal"
-        # In normal mode the last argument is the target file,
-        # and the preceding arguments is the SOPS command.
-        TARGET="''${!#}"
-        COMMAND=("''${@:1:$#-1}")
-      fi
+      packages = [ pkgs.jq pkgs-unstable.sops ];
+    };
 
-      if [ ! -f "$TARGET" ]; then
+    sops-set.exec = ''
+      set -euo pipefail
+
+      if [ "$#" -ne 3 ]; then
+        echo "Usage: sops-set <file> <key> <value>" >&2
         exit 1
       fi
 
-      # Check if the target file contains any SOPS Age metadata.
-      if ! ${pkgs.jq}/bin/jq -e '.sops.age[].recipient' "$TARGET" >/dev/null 2>&1; then
-        if [ "$MODE" = "exec-env" ]; then
-          exec ${sops} exec-env "$TARGET" -- "''${COMMAND[@]}"
-        else
-          exec ${sops} "''${COMMAND[@]}" "$TARGET"
-        fi
-      fi
+      FILE="$1"
+      KEY="$2"
+      VALUE="$3"
 
-      # The target file has Age metadata; now check specifically for the root key recipient.
-      if ${pkgs.jq}/bin/jq -r '.sops.age[].recipient' "$TARGET" | grep -qF "$AGE_ROOT_PUBLIC_KEY"; then
-        if [ "$MODE" = "exec-env" ]; then
-          exec env SOPS_AGE_KEY="$( \
-            ${sops} decrypt --extract '["dirtywaveUpdaterRootPrivateKey"]' "$ROOT_KEY_FILE" \
-          )" \
-          ${sops} exec-env "$TARGET" -- "''${COMMAND[@]}"
-        else
-          exec env SOPS_AGE_KEY="$( \
-            ${sops} decrypt --extract '["dirtywaveUpdaterRootPrivateKey"]' "$ROOT_KEY_FILE" \
-          )" \
-          ${sops} "''${COMMAND[@]}" "$TARGET"
-        fi
-      else
-        if [ "$MODE" = "exec-env" ]; then
-          exec ${sops} exec-env "$TARGET" -- "''${COMMAND[@]}"
-        else
-          exec ${sops} "''${COMMAND[@]}" "$TARGET"
-        fi
-      fi
+      # Expand into the canonical sops set command
+      exec sops set $FILE \
+        "[\"$KEY\"]" "\"$VALUE\""
     '';
 
     tauri-cli.exec = ''
