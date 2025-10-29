@@ -832,8 +832,13 @@ in {
       VALUE="$3"
 
       # Expand into the canonical sops set command
-      exec sops set $FILE \
-        "[\"$KEY\"]" "\"$VALUE\""
+      # -R = read raw input
+      # -s = slurp into a single string
+      # . = identity filter
+      # This produces a valid JSON string with \n escapes instead of literal newlines.
+      exec sops set "$FILE" \
+        "[\"$KEY\"]" \
+        "$(printf '%s' "$VALUE" | jq -Rs .)"
     '';
 
     tauri-cli.exec = ''backend cargo-tauri "$@"'';
