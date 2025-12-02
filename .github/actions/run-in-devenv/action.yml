@@ -1,0 +1,26 @@
+name: "Run in devenv"
+description: "Execute a command inside the devenv container with the repo mounted"
+inputs:
+  run:
+    description: "Command to run inside the devenv shell"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Run in container
+      shell: bash
+      run: |
+        UIDGID="$(id -u):$(id -g)"
+
+        # Create a host-side cache dir for devenv state
+        mkdir -p "$HOME/.cache/devenv-home"
+
+        docker run --rm \
+          -u "$UIDGID" \
+          -e HOME=/workspace/.home \
+          -e DEVENV_HOME=/workspace/.home/.devenv \
+          -v "${GITHUB_WORKSPACE}:/workspace" \
+          -v "$HOME/.cache/devenv-home:/workspace/.home/.devenv" \
+          -w /workspace \
+          ghcr.io/cachix/devenv/devenv:latest \
+          devenv shell "${{ inputs.run }}"

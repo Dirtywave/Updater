@@ -1,8 +1,8 @@
 {
-	"$schema": "https://schema.tauri.app/config/2",
-	"build": {
-		"beforeBuildCommand": "powershell -ExecutionPolicy Bypass -File ./src-tauri/scripts/build/windows/beforeBuildCommand.ps1",
-		"beforeDevCommand": "powershell -ExecutionPolicy Bypass -File ./src-tauri/scripts/build/windows/beforeDevCommand.ps1"
-	},
-	"identifier": "com.dirtywave.updater"
+  "$schema": "https://schema.tauri.app/config/2",
+  "build": {
+    "beforeBuildCommand": "powershell -ExecutionPolicy Bypass -File ../src-tauri/scripts/build/windows/beforeBuildCommand.ps1",
+    "beforeDevCommand": "powershell -ExecutionPolicy Bypass -File ../src-tauri/scripts/build/windows/beforeDevCommand.ps1"
+  },
+  "identifier": "com.dirtywave.updater"
 }

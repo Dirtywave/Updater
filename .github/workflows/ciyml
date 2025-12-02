@@ -1,0 +1,111 @@
+name: "publish"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # setup-devenv:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - platform: 'macos-latest' # for Arm based macs (M1 and above).
+  #           args: '--target aarch64-apple-darwin'
+  #         - platform: 'macos-latest' # for Intel based macs.
+  #           args: '--target x86_64-apple-darwin'
+  #         - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
+  #           args: ''
+  #         # - platform: 'windows-latest'
+  #         #   args: ''
+
+  #   runs-on: ${{ matrix.platform }}
+
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: cachix/install-nix-action@v26
+  #     - uses: cachix/cachix-action@v14
+  #       with:
+  #         name: devenv
+  #     - name: Install devenv.sh
+  #       run: nix profile install nixpkgs#devenv
+
+  publish-tauri:
+    # defaults:
+    #   run:
+    #     shell: devenv shell bash -- -e {0}
+    # needs: setup-devenv
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest" # for Arm based macs (M1 and above).
+            args: "--target aarch64-apple-darwin"
+          # - platform: 'macos-latest' # for Intel based macs.
+          #   args: '--target x86_64-apple-darwin'
+          # - platform: 'ubuntu-22.04' # for Tauri v1 you could replace this with ubuntu-20.04.
+          #   args: ''
+          # - platform: 'windows-latest'
+          #   args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # - uses: cachix/install-nix-action@v26
+      # - uses: cachix/cachix-action@v14
+      #   with:
+      #     name: devenv
+      # - name: Install devenv.sh
+      #   run: nix profile install nixpkgs#devenv
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install Quasar CLI
+        run: bun install --global @quasar/cli
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libudev-dev patchelf
+
+      - name: install frontend dependencies
+        # shell: devenv shell bash -- -e {0}
+        working-directory: src-frontend
+        run: bun install # change this to npm, pnpm or bun depending on which one you use.
+
+      # # Step 8: Publish Tauri app using tauri-action in devenv shell
+      # - name: Publish Tauri App
+      #   shell: devenv shell bash -- -e {0}
+      #   uses: tauri-apps/tauri-action@v0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tagName: app-v__VERSION__ # The action automatically replaces __VERSION__ with the app version.
+      #     releaseName: 'App v__VERSION__'
+      #     releaseBody: 'See the assets to download this version and install.'
+      #     releaseDraft: true
+      #     prerelease: false
+      #     args: ${{ matrix.args }}
+
+      - name: Publish Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          releaseName: "App v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

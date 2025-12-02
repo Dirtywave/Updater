@@ -1,8 +1,8 @@
 {
-	"$schema": "https://schema.tauri.app/config/2",
-	"build": {
-		"beforeDevCommand": "./scripts/build/unix/beforeDevCommand.sh",
-		"beforeBuildCommand": "./scripts/build/unix/beforeBuildCommand.sh"
-	},
-	"identifier": "com.dirtywave.updater"
+  "$schema": "https://schema.tauri.app/config/2",
+  "build": {
+    "beforeDevCommand": "./src-tauri/scripts/build/unix/beforeDevCommand.sh",
+    "beforeBuildCommand": "./src-tauri/scripts/build/unix/beforeBuildCommand.sh"
+  },
+  "identifier": "com.dirtywave.updater"
 }

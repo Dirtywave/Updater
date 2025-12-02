@@ -1,0 +1,5 @@
+{
+  "identifier": "pinia",
+  "windows": ["*"],
+  "permissions": ["core:event:default", "pinia:default"]
+}

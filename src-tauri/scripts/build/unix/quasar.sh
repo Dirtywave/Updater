@@ -4,7 +4,7 @@ run-quasar-command() {
     local PREFIX=
 
     if [ -z "$DEVENV_ROOT" ]; then
-        PREFIX="cd ./src-quasar && bun install && bunx @quasar/cli"
+        PREFIX="cd ./src-frontend && bun install && bun @quasar/cli"
     else
         PREFIX="quasar-cli"
     fi

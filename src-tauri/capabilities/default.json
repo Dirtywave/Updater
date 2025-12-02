@@ -1,7 +1,18 @@
 {
-	"$schema": "../gen/schemas/desktop-schema.json",
-	"identifier": "default",
-	"description": "Capability for the main window",
-	"windows": ["main"],
-	"permissions": ["core:default", "opener:default"]
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:allow-emit",
+    "core:event:default",
+    "core:window:allow-set-decorations",
+    "log:default",
+    "opener:default",
+    "deep-link:default",
+    "dialog:default",
+    "fs:default",
+    "fs:read-meta"
+  ]
 }

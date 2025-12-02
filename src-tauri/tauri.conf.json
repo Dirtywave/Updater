@@ -1,45 +1,58 @@
 {
-	"$schema": "https://schema.tauri.app/config/2",
-	"productName": "dirtywave-updater",
-	"version": "0.1.1",
-	"identifier": "com.dirtywave.updater",
-	"build": {
-		"devUrl": "http://localhost:1420",
-		"frontendDist": "../src-quasar/dist/spa"
-	},
-	"app": {
-		"windows": [
-			{
-				"decorations": false,
-				"dragDropEnabled": false,
-				"hiddenTitle": true,
-				"title": "Dirtywave Updater"
-			}
-		],
-		"security": {
-			"capabilities": [
-				{
-					"identifier": "draggable-window",
-					"windows": ["*"],
-					"permissions": [
-						"core:window:default",
-						"core:window:allow-close",
-						"core:window:allow-start-dragging"
-					]
-				}
-			],
-			"csp": null
-		}
-	},
-	"bundle": {
-		"active": true,
-		"targets": "all",
-		"icon": [
-			"icons/32x32.png",
-			"icons/128x128.png",
-			"icons/128x128@2x.png",
-			"icons/icon.icns",
-			"icons/icon.ico"
-		]
-	}
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Dirtywave Updater",
+  "identifier": "com.dirtywave.updater",
+  "build": {
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../src-frontend/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "decorations": false,
+        "dragDropEnabled": true,
+        "height": 545,
+        "hiddenTitle": true,
+        "maxWidth": 672,
+        "minHeight": 545,
+        "minWidth": 292,
+        "shadow": false,
+        "title": "Dirtywave Updater",
+        "width": 292
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "externalBin": ["binaries/tycmd"],
+    "linux": {},
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "hardenedRuntime": false,
+      "signingIdentity": "-"
+    },
+    "targets": "all",
+    "useLocalToolsDir": true
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": ["https://github.com/Dirtywave/Updater/releases/latest/download/latest.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc0NjE1OTJGNzQ2MjQ2NTcKUldSWFJtSjBMMWxoZExTd0xzUWFvYm9td01lZXo4V01kalFETkdOL1hhUUI5TkhYQmFmak5vWkwK"
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["dw"]
+      }
+    }
+  }
 }

@@ -2,7 +2,7 @@
 
 ## Description
 
-Firmware upload tool for the Dirtywave M8 Tracker.
+Firmware update tool for the Dirtywave M8 Tracker.
 
 ## Contributing
 
@@ -51,6 +51,7 @@ devenv shell
 #### Starting Application for Development
 
 For Desktop development, run:
+
 ```sh
 tauri-cli dev
 ```

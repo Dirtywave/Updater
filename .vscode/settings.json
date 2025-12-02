@@ -1,30 +1,48 @@
 {
 	"[javascript]": {
-		"editor.defaultFormatter": "biomejs.biome"
+		"editor.defaultFormatter": "oxc.oxc-vscode"
 	},
-
 	"[json]": {
-		"editor.defaultFormatter": "biomejs.biome"
+		"editor.defaultFormatter": "oxc.oxc-vscode"
 	},
-
 	"[rust]": {
 		"editor.defaultFormatter": "rust-lang.rust-analyzer"
 	},
-
 	"[typescript]": {
-		"editor.defaultFormatter": "biomejs.biome"
+		"editor.defaultFormatter": null,
 	},
-
 	"[vue]": {
-		"editor.defaultFormatter": "Vue.volar"
+		"editor.defaultFormatter": null,
 	},
-
 	"editor.formatOnSave": true,
-
+	"emeraldwalk.runonsave": {
+		"commands": [
+			{
+				// Run whenever html, css, or js files are saved
+				"match": "\\.(ts|vue)$",
+				"cmd": "frontend pnpm run oxfmt ${file}",
+			},
+		],
+	},
 	"nix.enableLanguageServer": true,
-	"nix.formatterPath": "nixfmt",
-	"nix.serverPath": "nixd",
-
+	"nix.serverPath": "nil",
+	// LSP config can be passed via the ``nix.serverSettings.{lsp}`` as shown below.
+	"nix.serverSettings": {
+		// check https://github.com/oxalica/nil/blob/main/docs/configuration.md for all options available
+		// check https://github.com/nix-community/nixd/blob/main/nixd/docs/configuration.md for all nixd config
+		"nil": {
+			"formatting": {
+				"command": [
+					"nixfmt"
+				],
+			},
+		}
+	},
+	"oxc.fmt.configPath": "./src-frontend/.oxfmtrc.json",
+	"oxc.configPath": "./src-frontend/.oxlintrc.json",
+	"oxc.path.node": "bun",
+	"oxc.path.oxlint": "./src-frontend/node_modules/oxlint/bin/oxlint",
+	"oxc.path.oxfmt": "./src-frontend/node_modules/oxfmt/bin/oxfmt",
 	"rust-analyzer.cargo.targetDir": true,
 	"rust-analyzer.check.command": "clippy",
 	"rust-analyzer.cargo.features": "all",
@@ -33,9 +51,14 @@
 		".devenv": true,
 		".direnv": true,
 		".quasar": true,
-	    "gen": true,
+		"gen": true,
 		"node_modules": true,
 		"nix": true,
 		"target": true
 	},
+	"vue.hover.rich": true,
+	"cSpell.words": [
+		"tauri",
+		"unlisten"
+	]
 }

@@ -1,0 +1,291 @@
+@use "sass:color";
+@use "sass:map";
+@use "src/css/colors.scss" as colors;
+@use "src/css/hover-brackets.scss";
+
+@each $color in (primary, secondary, accent, negative, positive) {
+  .glow-#{$color} {
+    filter: drop-shadow(0 0 4px var(--q-#{$color}));
+  }
+}
+
+.glow-current-color {
+  filter: drop-shadow(0 0 4px currentcolor);
+}
+
+.glow-dirty-white {
+  filter: drop-shadow(0 0 2px colors.$dirty-white);
+}
+
+:root {
+  // @extend .text-dirty-white;
+
+  overflow: hidden;
+  overscroll-behavior: none;
+
+  *::selection {
+    color: var(--q-primary);
+  }
+}
+
+body {
+  font-family: Montserrat, sans-serif;
+}
+
+ol {
+  margin-block-end: 0;
+  margin-block-start: 0;
+}
+
+ul {
+  list-style: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding-inline-start: 0;
+}
+
+$blurSizes: (
+  "sm": 5,
+  "md": 7,
+  "lg": 10,
+);
+
+// .bg-aero-md {
+//   @extend %bg-aero-md;
+// }
+
+.bg-aero {
+  @extend .bg-blur;
+  @extend .bg-translucent-grey;
+}
+
+@each $label, $value in $blurSizes {
+  .bg-aero-#{$label} {
+    @extend .bg-blur-#{$label};
+    @extend .bg-translucent-grey;
+  }
+}
+
+@each $label, $value in $blurSizes {
+  // %bg-blur to declare variable and not explicit class name
+  .bg-blur-#{$label} {
+    backdrop-filter: blur(#{$value}px);
+    -webkit-backdrop-filter: blur(#{$value}px);
+  }
+}
+
+.bg-blur {
+  @extend .bg-blur-sm;
+}
+
+.bg-dark-page {
+  background: $dark-page !important;
+}
+
+$darker-page: color.scale($dark-page, $lightness: -15%);
+
+.bg-darker-page {
+  background-color: $darker-page !important;
+}
+
+.bg-dirty-white {
+  background: colors.$dirty-white;
+}
+
+.bg-translucent-grey {
+  background-color: rgba(32, 32, 32, 0.4);
+}
+
+.q-btn--outline.q-btn.disabled,
+.q-btn.disabled {
+  --disabled-color: rgba(255, 255, 255, 0.2);
+  background-color: transparent;
+  background-size: 10px 10px;
+  // background-image: repeating-linear-gradient(
+  //   45deg,
+  //   var(--disabled-color) 0,
+  //   var(--disabled-color) 1px,
+  //   transparent 0,
+  //   transparent 50%
+  // );
+  border-style: dashed;
+}
+
+.q-scrollarea__thumb {
+  border-radius: 0;
+}
+
+.flex-min-content {
+  flex-basis: min-content;
+}
+
+.no-hover.q-hoverable:hover > .q-focus-helper {
+  opacity: 0 !important;
+  transition: unset !important;
+}
+
+.overflow-visible {
+  overflow: visible;
+}
+
+.bg-color-cycle {
+  animation: bg-color-cycle 1.5s linear infinite;
+}
+
+@keyframes bg-color-cycle {
+  0% {
+    background-color: var(--q-primary);
+    /* Start color */
+  }
+
+  50% {
+    background-color: var(--q-secondary);
+    /* Midpoint color */
+  }
+
+  100% {
+    background-color: var(--q-primary);
+    /* End color */
+  }
+}
+
+.border-color-cycle {
+  animation: border-color-cycle 1.5s linear infinite;
+}
+
+@keyframes border-color-cycle {
+  0% {
+    border-color: var(--q-primary);
+    /* Start color */
+  }
+
+  50% {
+    border-color: var(--q-secondary);
+    /* Midpoint color */
+  }
+
+  100% {
+    border-color: var(--q-primary);
+    /* End color */
+  }
+}
+
+@keyframes color-cycle {
+  0% {
+    color: var(--q-primary);
+    /* Start color */
+  }
+
+  50% {
+    color: var(--q-secondary);
+    /* Midpoint color */
+  }
+
+  100% {
+    color: var(--q-primary);
+    /* End color */
+  }
+}
+
+.color-cycle {
+  animation: color-cycle 1.5s linear infinite;
+}
+
+.no-quasar-focus-helper {
+  .q-focus-helper {
+    display: none;
+  }
+}
+
+// https://emile.sh/blog/how-to-add-noise-to-element-css
+.noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.3'/%3E%3C/svg%3E");
+  pointer-events: none;
+  // filter: unquote("invert()") brightness(0.1) contrast(2);
+  filter: brightness(0.71) contrast(2);
+  mix-blend-mode: overlay;
+  isolation: isolate;
+}
+
+.q-linear-progress__model::before {
+  // TODO: Figure out if we can get this glow applied somehow when transform is being animated
+  // @extend .glow-primary;
+
+  // Had to copy the animation CSS from the source in order to merge with the bg-color-cycle animation:
+  // https://github.com/quasarframework/quasar/blob/1161092ae2dd2520ed4b78a5927428e554f582d2/ui/src/components/linear-progress/QLinearProgress.sass#L61
+  animation:
+    q-linear-progress--indeterminate 2.1s
+      cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite,
+    bg-color-cycle 1.5s linear infinite;
+}
+
+.q-toolbar {
+  min-height: unset;
+}
+
+.q-tooltip {
+  @extend .bg-aero;
+
+  animation: border-color-cycle 1.5s linear infinite;
+  border-radius: 0px;
+  border-style: solid;
+  border-width: 1px;
+  padding: 0px map.get($space-xs, "x");
+}
+
+.square {
+  aspect-ratio: 1;
+}
+
+.text-dark-page {
+  color: $dark-page !important;
+}
+
+.text-monospace {
+  font-family: monospace;
+}
+
+.text-dirty-white {
+  color: colors.$dirty-white !important;
+}
+
+.bg-text-default {
+  background-color: colors.$text-default !important;
+}
+
+.text-text-default {
+  color: colors.$text-default !important;
+}
+
+.bg-text-disabled {
+  background-color: colors.$text-disabled !important;
+}
+
+.text-text-disabled {
+  color: colors.$text-disabled !important;
+}
+
+.text-text-empty {
+  color: colors.$text-empty !important;
+}
+
+.text-text-info {
+  color: colors.$text-info !important;
+}
+
+body.desktop .q-radio:not(.disabled) .q-radio__inner:before {
+  --offset: 20%;
+  top: var(--offset);
+  bottom: var(--offset);
+  left: var(--offset);
+  right: var(--offset);
+}
+
+.bracket-test {
+  border-image-source: url("src/assets/brackets.svg");
+  border-image-slice: 50%;
+  border-image-width: 4px;
+}

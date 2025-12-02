@@ -1,12 +1,12 @@
 {
-	"recommendations": [
-		"biomejs.biome",
-		"dbaeumer.vscode-eslint",
-		"jnoortheen.nix-ide",
-		"mkhl.direnv",
-		"redhat.vscode-yaml",
-		"rust-lang.rust-analyzer",
-		"tauri-apps.tauri-vscode",
-		"Vue.volar"
-	]
+  "recommendations": [
+    "biomejs.biome",
+    "dbaeumer.vscode-eslint",
+    "jnoortheen.nix-ide",
+    "mkhl.direnv",
+    "redhat.vscode-yaml",
+    "rust-lang.rust-analyzer",
+    "tauri-apps.tauri-vscode",
+    "Vue.volar"
+  ]
 }

@@ -1,9 +1,9 @@
 [package]
-name = "dirtywave-updater"
-version = "0.1.0"
-description = "A Tauri App"
 authors = ["you"]
+description = "A Tauri App"
 edition = "2021"
+name = "dirtywave-updater"
+version = "0.0.1"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.
@@ -11,26 +11,63 @@ incremental = true # Compile your binary in smaller steps.
 [profile.release]
 codegen-units = 1 # Allows LLVM to perform better optimization.
 lto = true # Enables link-time-optimizations.
-opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+opt-level = "z" # Prioritizes small binary size. Use `3` if you prefer speed.
 panic = "abort" # Higher performance by disabling panic handlers.
 strip = true # Ensures debug symbols are removed.
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "dirtywave_updater_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.5.3", features = [] }
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tauri = { version = "2", features = [] }
-tauri-cli = "2.2.7"
-tauri-plugin-opener = "2"
+anyhow = "1.0.100"
+async-trait = "0.1.89"
+chrono = "0.4.43"
+futures-util = "0.3.31"
+log = "0.4.29"
+regex = "1.12.2"
+reqwest = { version = "0.13.1", features = ["stream"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+serialport = { version = "4.8.1", features = ["serde"] }
+tauri = { version = "2.9.5", features = ["tracing"] }
+tauri-cli = "2.9.6"
+tauri-plugin-deep-link = "2.4.6"
+tauri-plugin-devtools = "2.0.1"
+tauri-plugin-dialog = "2.6.0"
+tauri-plugin-fs = "2.4.5"
+tauri-plugin-log = "2.8.0"
+tauri-plugin-opener = "2.5.3"
+tauri-plugin-pinia = "4.1.0"
+tauri-plugin-shell = "2.3.4"
+tauri-plugin-store = "2.4.2"
+thiserror = "2.0.18"
+tokio = "1.49.0"
+# tracing = {version = "0.1.41", features = ["async-await"] }
+# tracing-subscriber = "0.3.19"
+# zip = "4.5.0"
+zip = { version = "6.0.0", default-features = false, features = ["deflate", "bzip2"] }
 
+# TODO: Docs say to use this target, which seems roughly equivalent:
+# cfg(any(target_os = "macos", windows, target_os = "linux"))
+[target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
+tauri-plugin-single-instance = { version = "2.3.7", features = ["deep-link"] }
+tauri-plugin-updater = "2.9.0"
+tauri-plugin-window-state = "2.4.1"
+
+[target."cfg(target_os = \"macos\")".dependencies]
+cocoa = "0.26.1"
+
+# https://github.com/jhpratt/deranged/issues/18
+# [patch.crates-io]
+# deranged = {git = "https://github.com/jhpratt/deranged", rev = "3c95431a375bca409a4731ae8749acc84e076267"}
+# Patch lzma-sys to use liblzma-sys from the correct repository
+# lzma-sys = { git = "https://github.com/gyscos/zstd-rs", package = "liblzma-sys", version = "0.4.4" }

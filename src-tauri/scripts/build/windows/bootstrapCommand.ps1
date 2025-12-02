@@ -1,7 +1,7 @@
-. "$PSScriptRoot\nvmrcShim.ps1"
+# . "$PSScriptRoot\nvmrcShim.ps1"
 
-Set-Location -Path ".\src-quasar"
+# Set-Location -Path ".\src-frontend"
 
-Use-Nvmrc
+# Use-Nvmrc
 
 bun install

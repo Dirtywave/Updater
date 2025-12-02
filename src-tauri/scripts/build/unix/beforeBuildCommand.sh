@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# shellcheck source=./quasar.sh
-source "$(dirname "$0")/quasar.sh"
+# Inside Nix, the frontend is already built as a separate derivation
+if [ -n "${NIX_BUILD_TOP:-}" ]; then
+  echo "beforeBuildCommand: skipping frontend build inside Nix"
 
-cd ./src-quasar || exit
+  exit 0
+fi
 
-# bun install
-bunx @quasar/cli prepare
+cd ./src-frontend
 
-bunx @quasar/cli build
-
-# run-quasar-command build
+pnpm run build
