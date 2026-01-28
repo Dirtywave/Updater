@@ -63,7 +63,7 @@
     "vite-plugin-singlefile": "2.3.0",
     "vite-plugin-vue-devtools": "8.0.5",
     "vitest": "3.2.4",
-    "vue-tsc": "3.2.2"
+    "vue-tsc": "3.2.4"
   },
   "overrides": {
     "@tauri-apps/api": "$@tauri-apps/api",
