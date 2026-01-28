@@ -28,7 +28,7 @@
     "@tauri-store/pinia": "4.1.0",
     "@vueuse/components": "14.1.0",
     "@vueuse/core": "14.1.0",
-    "caniuse-lite": "1.0.30001765",
+    "caniuse-lite": "1.0.30001766",
     "pinia": "3.0.4",
     "quasar": "2.18.6",
     "rimraf": "6.1.2",
